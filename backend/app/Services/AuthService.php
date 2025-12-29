@@ -45,13 +45,20 @@ class AuthService {
         return $userId;
     }
 
-    public function login($email, $password) {
+    public function login($email, $password, $requestedRole = null) {
         $user = $this->userRepo->findByEmail($email);
+
         if (!$user || !password_verify($password, $user['password'])) {
             throw new Exception("Invalid credentials");
         }
 
-        // Plaintext Login - returning user data directly
+        // ✅ ROLE VALIDATION (CRITICAL RBAC FIX)
+        if ($requestedRole !== null) {
+            if (strtolower($user['role']) !== strtolower($requestedRole)) {
+                throw new Exception("Role mismatch");
+            }
+        }
+
         return [
             'user' => [
                 'id' => $user['id'],
@@ -62,6 +69,7 @@ class AuthService {
             ]
         ];
     }
+
 
     public function changePassword($userId, $oldPassword, $newPassword) {
         $user = $this->userRepo->findById($userId);

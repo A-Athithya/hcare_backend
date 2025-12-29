@@ -61,8 +61,21 @@ class AuthController {
 
         try {
             // 1. Verify Credentials
-            $result = $this->authService->login($data['email'], $data['password']);
-            $user = $result['user']; // [id, name, role, email, tenant_id?]
+                $result = $this->authService->login(
+                    $data['email'],
+                    $data['password']
+                );
+
+                $user = $result['user'];
+
+                // 🔒 STRICT ROLE VALIDATION (NO TRUST ON CLIENT)
+                if (
+                    empty($data['role']) ||
+                    strtolower($data['role']) !== strtolower($user['role'])
+                ) {
+                    Response::json(['error' => 'Invalid role for this account'], 403);
+                }
+
             
             // 2. Generate Tokens
             $accessToken = $this->jwtService->generateAccessToken($user['id'], $user['role'], $user['tenant_id'] ?? 1);
