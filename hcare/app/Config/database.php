@@ -4,6 +4,7 @@ class Database {
     private $db_name;
     private $username;
     private $password;
+    private $port;
     public $conn;
 
     public function __construct() {
@@ -11,12 +12,13 @@ class Database {
         $this->db_name = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'hcare_db');
         $this->username = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? 'root');
         $this->password = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
+        $this->port = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '3306');
     }
 
     public function getConnection() {
         $this->conn = null;
         try {
-            $dsn = "mysql:host=" . $this->host . ";dbname=" . $this->db_name;
+            $dsn = "mysql:host=" . $this->host . ";port=" . $this->port . ";dbname=" . $this->db_name;
             $this->conn = new PDO($dsn, $this->username, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
@@ -41,8 +43,9 @@ function getDbConnection() {
             $dbname = getenv('DB_NAME') ?: 'hcare_db';
             $username = getenv('DB_USER') ?: 'root';
             $password = getenv('DB_PASS') ?: '';
+            $port = getenv('DB_PORT') ?: 3306;
             
-            $connection = new mysqli($host, $username, $password, $dbname);
+            $connection = new mysqli($host, $username, $password, $dbname, $port);
             
             if ($connection->connect_error) {
                 throw new Exception('Connection failed: ' . $connection->connect_error);

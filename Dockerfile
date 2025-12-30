@@ -1,19 +1,9 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-# Enable Apache rewrite
-RUN a2enmod rewrite
+WORKDIR /app
 
-# Set Apache document root to /var/www/html/hcare/public
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/hcare/public
+COPY . .
 
-# Update Apache config to use new document root
-RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+EXPOSE 10000
 
-# Copy project
-COPY . /var/www/html/
-
-# Permissions
-RUN chown -R www-data:www-data /var/www/html
-
-EXPOSE 80
+CMD php -S 0.0.0.0:${PORT:-10000} -t public
