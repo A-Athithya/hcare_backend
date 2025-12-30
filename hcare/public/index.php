@@ -7,10 +7,6 @@
  * and routes requests to the appropriate controllers.
  */
 
-// Report all errors during development
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // Start session for authentication
 session_start();
 
@@ -19,6 +15,26 @@ define('BASE_PATH', dirname(__DIR__));
 
 // Load environment variables
 require_once BASE_PATH . '/app/Config/env.php';
+
+// Configure error reporting based on DEBUG_MODE
+// Temporarily enable errors for debugging - set DEBUG_MODE=false in production
+$debugMode = defined('DEBUG_MODE') ? DEBUG_MODE : (getenv('DEBUG_MODE') === 'true' || getenv('DEBUG_MODE') === '1');
+
+// For initial deployment, show errors to diagnose issues
+// Change this to false after fixing all issues
+$showErrors = true; // Set to false in production
+
+if ($debugMode || $showErrors) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    ini_set('log_errors', 1);
+    ini_set('error_log', BASE_PATH . '/logs/php_errors.log');
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+    ini_set('error_log', BASE_PATH . '/logs/php_errors.log');
+}
 
 // Load configuration
 require_once BASE_PATH . '/app/Config/database.php';
