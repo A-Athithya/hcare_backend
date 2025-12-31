@@ -96,7 +96,45 @@ require_once BASE_PATH . '/app/Controllers/CalendarController.php';
 require_once BASE_PATH . '/app/Routes/api.php';
 
 // Handle CORS
-$frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:3000';
+// Define allowed origins - add your production frontend URLs here
+$allowedOrigins = [
+    'http://localhost:3000',
+    'https://hcarefrontend-7t0ah3e14-athithyas-projects-37de8dcf.vercel.app',
+];
+
+// Get additional allowed origins from environment variable (comma-separated)
+$envFrontendUrl = getenv('FRONTEND_URL');
+if ($envFrontendUrl && $envFrontendUrl !== 'https://your-frontend-domain.com') {
+    $envOrigins = array_map('trim', explode(',', $envFrontendUrl));
+    $allowedOrigins = array_merge($allowedOrigins, $envOrigins);
+}
+
+// Remove duplicates and empty values
+$allowedOrigins = array_unique(array_filter($allowedOrigins));
+
+// Get the origin from the request
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+// Determine which origin to allow
+$frontendUrl = null;
+if (!empty($origin)) {
+    // Check if request origin is in allowed list
+    if (in_array($origin, $allowedOrigins)) {
+        $frontendUrl = $origin;
+    } else {
+        // Check if it's a Vercel domain (for preview deployments)
+        if (preg_match('/^https:\/\/.*\.vercel\.app$/', $origin)) {
+            $frontendUrl = $origin; // Allow any Vercel deployment
+        }
+    }
+}
+
+// Fallback: use first allowed origin or default
+if (!$frontendUrl) {
+    $frontendUrl = !empty($allowedOrigins) ? reset($allowedOrigins) : 'http://localhost:3000';
+}
+
+// Set CORS headers
 header('Access-Control-Allow-Origin: ' . $frontendUrl);
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token, X-Requested-With');
