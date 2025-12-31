@@ -60,15 +60,13 @@ class CsrfMiddleware
         }
 
         if (!$provided) {
-            http_response_code(400);
-            echo json_encode(['error' => 'Missing CSRF token']);
-            exit;
+            require_once __DIR__ . '/../Helpers/Response.php';
+            Response::json(['error' => 'Missing CSRF token'], 400);
         }
 
         if (!hash_equals($_SESSION['csrf_token'] ?? '', $provided)) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            exit;
+            require_once __DIR__ . '/../Helpers/Response.php';
+            Response::json(['error' => 'Invalid CSRF token'], 403);
         }
 
         return true;
