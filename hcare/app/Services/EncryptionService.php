@@ -24,7 +24,8 @@ class EncryptionService {
 
         if (empty($key)) {
              error_log("CRITICAL: AES_KEY missing in environment variables!");
-             throw new Exception("Server Configuration Error: Encryption Key Missing");
+             error_log("Available env vars: " . implode(', ', array_keys($_ENV)));
+             throw new Exception("Server Configuration Error: Encryption Key Missing. Please set AES_KEY environment variable.");
         }
         
         $this->key = $key;

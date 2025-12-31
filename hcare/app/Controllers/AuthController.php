@@ -136,7 +136,7 @@ class AuthController {
             if (!$storedToken) {
                 // Invalid token - clear cookie
                 setcookie('refreshToken', '', time() - 3600, '/');
-                    Response::json(['error' => 'Invalid or expired refresh token'], 401);
+                Response::json(['error' => 'Invalid or expired refresh token'], 401);
             }
             
             // Revoke old token
@@ -184,10 +184,26 @@ class AuthController {
     }
     
     public function csrf() {
-        Response::json([
-            'csrfToken' => CsrfMiddleware::generate(),
-            'csrf_token' => $_SESSION['csrf_token'] ?? CsrfMiddleware::generate()
-        ]);
+        try {
+            // Ensure session is started
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                session_start();
+            }
+            
+            // Generate CSRF token
+            $csrfToken = CsrfMiddleware::generate();
+            
+            Response::json([
+                'csrfToken' => $csrfToken,
+                'csrf_token' => $csrfToken
+            ]);
+        } catch (Exception $e) {
+            error_log("CSRF endpoint error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+            Response::json([
+                'error' => 'Failed to generate CSRF token',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function logRemote() {
