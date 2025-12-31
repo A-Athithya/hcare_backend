@@ -184,95 +184,10 @@ class AuthController {
     }
     
     public function csrf() {
-        try {
-            // Ensure session is started with proper error handling
-            if (session_status() !== PHP_SESSION_ACTIVE) {
-                // Configure session settings for better compatibility
-                ini_set('session.use_cookies', '1');
-                ini_set('session.use_only_cookies', '1');
-                ini_set('session.cookie_httponly', '1');
-                ini_set('session.cookie_samesite', 'Lax');
-                
-                // Try to start session
-                if (!@session_start()) {
-                    throw new Exception("Failed to start session");
-                }
-            }
-            
-            // Generate CSRF token
-            $csrfToken = CsrfMiddleware::generate();
-            
-            if (empty($csrfToken)) {
-                throw new Exception("CSRF token generation returned empty value");
-            }
-            
-            // Use a more defensive response method that handles encryption failures
-            $this->sendJsonResponse([
-                'csrfToken' => $csrfToken,
-                'csrf_token' => $csrfToken
-            ], 200);
-            
-        } catch (Exception $e) {
-            error_log("CSRF endpoint error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
-            error_log("Stack trace: " . $e->getTraceAsString());
-            
-            // Try to send error response, but handle encryption failures
-            try {
-                $this->sendJsonResponse([
-                    'error' => 'Failed to generate CSRF token',
-                    'message' => $e->getMessage()
-                ], 500);
-            } catch (Exception $responseError) {
-                // Last resort: send plain JSON without encryption
-                http_response_code(500);
-                header('Content-Type: application/json; charset=UTF-8');
-                if (function_exists('setCorsHeaders')) {
-                    setCorsHeaders();
-                }
-                echo json_encode([
-                    'error' => 'Failed to generate CSRF token',
-                    'message' => $e->getMessage()
-                ]);
-                exit;
-            }
-        }
-    }
-    
-    /**
-     * Helper method to send JSON response with encryption error handling
-     */
-    private function sendJsonResponse($data, $status = 200) {
-        // Ensure CORS headers are set
-        if (!headers_sent() && function_exists('setCorsHeaders')) {
-            setCorsHeaders();
-        }
-        
-        // Ensure we're sending JSON
-        if (!headers_sent()) {
-            header('Content-Type: application/json; charset=UTF-8');
-        }
-        
-        // Clear any output buffers
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Try to encrypt response, but fallback to unencrypted if it fails
-        try {
-            require_once __DIR__ . '/../Services/EncryptionService.php';
-            $encryption = new EncryptionService();
-            $encrypted = $encryption->encrypt($data);
-            
-            http_response_code($status);
-            $response = ['payload' => $encrypted];
-            echo json_encode($response);
-        } catch (Exception $e) {
-            // If encryption fails, return unencrypted response
-            error_log("Encryption failed in CSRF endpoint: " . $e->getMessage());
-            http_response_code($status);
-            echo json_encode($data);
-        }
-        exit;
+        Response::json([
+            'csrfToken' => CsrfMiddleware::generate(),
+            'csrf_token' => $_SESSION['csrf_token'] ?? CsrfMiddleware::generate()
+        ]);
     }
 
     public function logRemote() {

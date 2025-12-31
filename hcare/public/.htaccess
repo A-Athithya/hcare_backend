@@ -1,18 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    
-    # Set environment variable to identify API requests
-    RewriteCond %{HTTP_ACCEPT} application/json [OR]
-    RewriteCond %{HTTP_X_REQUESTED_WITH} XMLHttpRequest
-    SetEnv API_REQUEST 1
-    
-    # Standard rewrite rules
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ index.php [QSA,L]
 </IfModule>
-
-# Force JSON content type for API endpoints
-<FilesMatch "\.(php)$">
-    Header set Content-Type "application/json; charset=UTF-8"
-</FilesMatch>
