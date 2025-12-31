@@ -41,7 +41,11 @@ if (file_exists($envFile)) {
 } else {
     // .env file doesn't exist - this is OK for production platforms
     // Environment variables should be set directly (e.g., via Render.com dashboard)
-    error_log("Note: .env file not found. Using environment variables directly.");
+    // Only log if logs directory exists to avoid errors
+    $logFile = BASE_PATH . '/logs/php_errors.log';
+    if (is_dir(dirname($logFile)) || @file_put_contents($logFile, '', FILE_APPEND) !== false) {
+        @error_log("Note: .env file not found. Using environment variables directly.");
+    }
 }
 
 // Define debug mode constant
