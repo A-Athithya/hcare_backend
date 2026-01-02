@@ -7,68 +7,12 @@
  * and routes requests to the appropriate controllers.
  */
 
-// Start output buffering
-ob_start();
-
-// Set CORS headers FIRST - before anything else
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://hcarefrontend-theta.vercel.app'
-    "https://hcarefrontend-45sitjc9h-athithyas-projects-37de8dcf.vercel.app",
-    "https://hcarefrontend-7t0ah3e14-athithyas-projects-37de8dcf.vercel.app"
-];
-
-// Get additional allowed origins from environment variable
-$envFrontendUrl = getenv('FRONTEND_URL');
-if ($envFrontendUrl && $envFrontendUrl !== 'https://your-frontend-domain.com') {
-    $envOrigins = array_map('trim', explode(',', $envFrontendUrl));
-    $allowedOrigins = array_merge($allowedOrigins, $envOrigins);
-}
-
-$allowedOrigins = array_unique(array_filter($allowedOrigins));
-
-// Determine which origin to allow
-$frontendUrl = null;
-if (!empty($origin)) {
-    if (in_array($origin, $allowedOrigins)) {
-        $frontendUrl = $origin;
-    } elseif (preg_match('/^https:\/\/.*\.vercel\.app$/', $origin)) {
-        $frontendUrl = $origin; // Allow any Vercel deployment
-    }
-}
-
-if (!$frontendUrl) {
-    $frontendUrl = !empty($allowedOrigins) ? reset($allowedOrigins) : 'http://localhost:3000';
-}
-
-// Set CORS headers immediately
-header('Access-Control-Allow-Origin: ' . $frontendUrl);
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept');
-header('Access-Control-Allow-Credentials: true');
-header('Content-Type: application/json; charset=UTF-8');
-
-// Handle preflight requests early
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-// Configure error reporting - NEVER display errors as HTML
+// Report all errors during development
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Critical: Never display errors as HTML
-ini_set('log_errors', 1);
+ini_set('display_errors', 1);
 
 // Start session for authentication
-try {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        @session_start();
-    }
-} catch (Exception $e) {
-    // Continue without session if it fails
-}
+session_start();
 
 // Set the base path
 define('BASE_PATH', dirname(__DIR__));
@@ -135,8 +79,19 @@ require_once BASE_PATH . '/app/Controllers/CalendarController.php';
 // Load routes
 require_once BASE_PATH . '/app/Routes/api.php';
 
-// CORS headers are already set at the beginning of the file
-// OPTIONS requests are also handled early
+// Handle CORS
+$frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:3000';
+header('Access-Control-Allow-Origin: ' . $frontendUrl);
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token, X-Requested-With');
+header('Access-Control-Allow-Credentials: true');
+header('Content-Type: application/json; charset=UTF-8');
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 // Get request URI and method
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

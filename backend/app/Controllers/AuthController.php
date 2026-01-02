@@ -56,7 +56,7 @@ class AuthController {
 
         if (!isset($data['email']) || !isset($data['password'])) {
             Log::error("Login Missing Creds", $data);
-            Response::json(['error' => 'Please enter both email and password'], 400);
+            Response::json(['error' => 'Email and password required'], 400);
         }
 
         try {
@@ -73,7 +73,7 @@ class AuthController {
                     empty($data['role']) ||
                     strtolower($data['role']) !== strtolower($user['role'])
                 ) {
-                    Response::json(['error' => 'This account does not have access to the selected role'], 403);
+                    Response::json(['error' => 'Invalid role for this account'], 403);
                 }
 
             
@@ -185,9 +185,8 @@ class AuthController {
     
     public function csrf() {
         Response::json([
-            'csrfToken' => CsrfMiddleware::generate(),
-            'csrf_token' => $_SESSION['csrf_token'] ?? CsrfMiddleware::generate()
-        ]);
+            'csrfToken' => CsrfMiddleware::generate()
+        ], 200, false);
     }
 
     public function logRemote() {
@@ -224,7 +223,7 @@ class AuthController {
         }
     }
     public function regenerateCsrf() {
-        Response::json(['csrf_token' => CsrfMiddleware::regenerate()]);
+        Response::json(['csrf_token' => CsrfMiddleware::regenerate()], 200, false);
     }
     
     public function logout() {
