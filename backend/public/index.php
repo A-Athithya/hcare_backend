@@ -101,6 +101,7 @@ require_once BASE_PATH . '/app/Routes/api.php';
 
 /* ===== Routing ===== */
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$requestUri = str_replace('/api', '', $requestUri);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 $publicPath = dirname($_SERVER['SCRIPT_NAME']);
