@@ -3,6 +3,36 @@
  * Healthcare Management System - Main Entry Point
  */
 
+/* =========================================================
+   ✅ CORS + PREFLIGHT (MUST BE FIRST – NO CODE ABOVE THIS)
+   ========================================================= */
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+$allowedOrigins = [
+    'http://localhost:3000',
+    'https://hcarefrontend-theta.vercel.app'
+];
+
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
+}
+
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token, X-Requested-With");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
+header("Content-Type: application/json; charset=UTF-8");
+
+/* 🔴 CRITICAL: stop OPTIONS here */
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+/* =========================================================
+   ✅ END CORS
+   ========================================================= */
+
+
+/* ===== Normal App Boot Starts Here ===== */
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
@@ -13,14 +43,14 @@ define('BASE_PATH', dirname(__DIR__));
 require_once BASE_PATH . '/app/Config/env.php';
 require_once BASE_PATH . '/app/Config/database.php';
 
-// Helpers
+/* Helpers */
 require_once BASE_PATH . '/app/Helpers/Router.php';
 require_once BASE_PATH . '/app/Helpers/Log.php';
 require_once BASE_PATH . '/app/Helpers/Response.php';
 require_once BASE_PATH . '/app/Helpers/Validator.php';
 require_once BASE_PATH . '/app/Helpers/Encryption.php';
 
-// Services
+/* Services */
 require_once BASE_PATH . '/app/Services/JwtService.php';
 require_once BASE_PATH . '/app/Services/AuthService.php';
 require_once BASE_PATH . '/app/Services/PatientService.php';
@@ -34,7 +64,7 @@ require_once BASE_PATH . '/app/Services/InventoryService.php';
 require_once BASE_PATH . '/app/Services/NotificationService.php';
 require_once BASE_PATH . '/app/Services/CalendarService.php';
 
-// Repositories
+/* Repositories */
 require_once BASE_PATH . '/app/Repositories/UserRepository.php';
 require_once BASE_PATH . '/app/Repositories/PatientRepository.php';
 require_once BASE_PATH . '/app/Repositories/AppointmentRepository.php';
@@ -47,13 +77,13 @@ require_once BASE_PATH . '/app/Repositories/InventoryRepository.php';
 require_once BASE_PATH . '/app/Repositories/NotificationRepository.php';
 require_once BASE_PATH . '/app/Repositories/CalendarRepository.php';
 
-// Middleware
+/* Middleware */
 require_once BASE_PATH . '/app/Middleware/AuthMiddleware.php';
 require_once BASE_PATH . '/app/Middleware/RoleMiddleware.php';
 require_once BASE_PATH . '/app/Middleware/EncryptionMiddleware.php';
 require_once BASE_PATH . '/app/Middleware/CsrfMiddleware.php';
 
-// Controllers
+/* Controllers */
 require_once BASE_PATH . '/app/Controllers/AuthController.php';
 require_once BASE_PATH . '/app/Controllers/PatientController.php';
 require_once BASE_PATH . '/app/Controllers/AppointmentController.php';
@@ -66,35 +96,10 @@ require_once BASE_PATH . '/app/Controllers/InventoryController.php';
 require_once BASE_PATH . '/app/Controllers/NotificationController.php';
 require_once BASE_PATH . '/app/Controllers/CalendarController.php';
 
-// Routes
+/* Routes */
 require_once BASE_PATH . '/app/Routes/api.php';
 
-
-// ===== ✅ CORS FIX (LIVE URLs) =====
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-$allowedOrigins = [
-    'http://localhost:3000',
-    'https://hcarefrontend-theta.vercel.app'
-];
-
-if (in_array($origin, $allowedOrigins)) {
-    header("Access-Control-Allow-Origin: $origin");
-}
-
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token, X-Requested-With');
-header('Access-Control-Allow-Credentials: true');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-// ===== END CORS =====
-
-
-// Routing
+/* ===== Routing ===== */
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
