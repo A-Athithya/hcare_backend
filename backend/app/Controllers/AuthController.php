@@ -185,9 +185,10 @@ class AuthController {
     
     public function csrf() {
         Response::json([
-            'csrfToken' => CsrfMiddleware::generate()
-        ], 200, false);
+            'csrf_token' => CsrfMiddleware::generate()
+        ]);
     }
+
 
     public function logRemote() {
         $raw = file_get_contents('php://input');
